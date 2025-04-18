@@ -33,7 +33,7 @@ const startApolloServer = async () => {
   ));
 
   if (process.env.NODE_ENV === 'production') {
-    const distPath = path.resolve(__dirname, '../client', 'dist');
+    const distPath = path.resolve(__dirname, '../../client', 'dist');
     console.log('Serving static files from:', distPath); // Log for debugging
     app.use(express.static(distPath));
 
