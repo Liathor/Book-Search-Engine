@@ -40,7 +40,7 @@ const resolvers = {
         }, 
         me: async (_parent: any, _args: unknown, context: any) => {
             if (context.user) {
-              return User.findOne({ _id: context.user._id }).populate('thoughts');
+              return User.findOne({ _id: context.user._id });
             }
             throw new AuthenticationError('Could not authenticate user.');
         },       
@@ -51,7 +51,7 @@ const resolvers = {
             const user = await User.create({ ...input });
           
             const token = signToken(user.username, user.email, user._id);
-          
+            console.log("create user triggered: " + user.username);
             return { token, user };
         },
 

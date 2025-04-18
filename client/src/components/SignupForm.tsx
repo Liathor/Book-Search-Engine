@@ -2,9 +2,7 @@ import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-
 import { useMutation } from '@apollo/client';
-
 import { CREATE_USER } from '../utils/mutations';
 import Auth from '../utils/auth';
 import type { User } from '../models/User';
@@ -12,7 +10,12 @@ import type { User } from '../models/User';
 // biome-ignore lint/correctness/noEmptyPattern: <explanation>
 const SignupForm = ({}: { handleModalClose: () => void }) => {
   // set initial form state
-  const [userFormData, setUserFormData] = useState<User>({ username: '', email: '', password: '', savedBooks: [] });
+  const [userFormData, setUserFormData] = useState<User>({ 
+    username: '', 
+    email: '', 
+    password: '',
+    savedBooks: [],
+  });
   // set state for form validation
   const [validated] = useState(false);
   // set state for alert
@@ -35,19 +38,26 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
       event.stopPropagation();
     }
     
-    setUserFormData({
-      username: '',
-      email: '',
-      password: '',
-      savedBooks: [],
-    });
-
     try {
-      const { data } = await addUser({
+      const response = await addUser({
         variables: { input: { ...userFormData } },
       });
 
-      Auth.login(data.addUser.token);
+      const token = response.data?.createUser?.token;
+
+      if (token) {
+        Auth.login(token);
+      } else {
+        setShowAlert(true);
+      }
+
+      setUserFormData({
+        username: '',
+        email: '',
+        password: '',
+        savedBooks: [],
+      });
+
     } catch (e) {
       console.error(e);
     }
@@ -55,7 +65,6 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
 
   return (
     <>
-      {/* This is needed for the validation functionality above */}
       {data ? (
               <p>
                 Success! You may now head{' '}

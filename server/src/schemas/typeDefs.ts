@@ -5,6 +5,7 @@ const typeDefs = `
     email: String
     password: String
     savedBooks: [BookDocument]!
+    bookCount: Int
   }
 
   input UserInput {
