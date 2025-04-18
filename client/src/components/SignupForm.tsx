@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
-import { createUser } from '../utils/API';
+import { useMutation } from '@apollo/client';
+
+import { CREATE_USER } from '../utils/mutations';
 import Auth from '../utils/auth';
 import type { User } from '../models/User';
 
@@ -14,6 +17,8 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
   const [validated] = useState(false);
   // set state for alert
   const [showAlert, setShowAlert] = useState(false);
+
+  const [addUser, { error, data }] = useMutation(CREATE_USER);  
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -29,32 +34,34 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
       event.preventDefault();
       event.stopPropagation();
     }
-
-    try {
-      const response = await createUser(userFormData);
-
-      if (!response.ok) {
-        throw new Error('something went wrong!');
-      }
-
-      const { token } = await response.json();
-      Auth.login(token);
-    } catch (err) {
-      console.error(err);
-      setShowAlert(true);
-    }
-
+    
     setUserFormData({
       username: '',
       email: '',
       password: '',
       savedBooks: [],
     });
+
+    try {
+      const { data } = await addUser({
+        variables: { input: { ...userFormData } },
+      });
+
+      Auth.login(data.addUser.token);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
     <>
       {/* This is needed for the validation functionality above */}
+      {data ? (
+              <p>
+                Success! You may now head{' '}
+                <Link to="/">back to the homepage.</Link>
+              </p>
+            ) : (
       <Form noValidate validated={validated} onSubmit={handleFormSubmit}>
         {/* show alert if server response is bad */}
         <Alert dismissible onClose={() => setShowAlert(false)} show={showAlert} variant='danger'>
@@ -106,6 +113,12 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
           Submit
         </Button>
       </Form>
+    )}
+    {error && (
+      <div className="my-3 p-3 bg-danger text-white">
+        {error.message}
+      </div>
+    )}
     </>
   );
 };

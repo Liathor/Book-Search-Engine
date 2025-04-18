@@ -10,6 +10,7 @@ interface CreateUserArgs {
       username: string;
       email: string;
       password: string;
+      savedBooks: BookInput[];
     }
   }
 
@@ -17,13 +18,19 @@ interface LoginUserArgs {
     email: string;
     password: string;
 }
-  
-interface SaveBookArgs {
-    bookId: number,
+
+interface BookInput {
+    authors: [string];
+    description: string;
+    bookId: string;
+    image: string;
+    link: string;
+    title: string;
 }
 
+
 interface DeleteBookArgs {
-    bookId: number,
+    bookId: string;   
 }
 
 const resolvers = {
@@ -66,25 +73,26 @@ const resolvers = {
             return { token, user };
           },
 
-        saveBook: async (_parent: any, { bookId }: SaveBookArgs, context: any) => {
+        saveBook: async (_parent: any, { book }: { book: BookInput }, context: any) => {
             if (context.user) {
                 return User.findOneAndUpdate(
                     { _id: context.user._id },
-                    { $addToSet: { savedBooks: { savedBooks: bookId }, }, },
+                    { $addToSet: { savedBooks: book }, },
                     { new: true, runValidators: true, }
                 );
             }
-            throw AuthenticationError;
+            throw new AuthenticationError("You must be logged in");
         },
+
         deleteBook: async (_parent: any, { bookId }: DeleteBookArgs, context: any) => {
             if (context.user) {
                 return User.findOneAndUpdate(
                     { _id: context.user._id },
-                    { $pull: { savedBooks: { savedBooks: bookId }, }, },
+                    { $pull: { savedBooks: { bookId: bookId } }, },
                     { new: true, }
                 );
             }
-            throw AuthenticationError;
+            throw new AuthenticationError("You must be logged in");
         },
     },
 };
