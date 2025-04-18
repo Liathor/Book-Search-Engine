@@ -33,10 +33,14 @@ const startApolloServer = async () => {
   ));
 
   if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '../client', 'dist')));
+    const distPath = path.resolve(__dirname, '../client', 'dist');
+    console.log('Serving static files from:', distPath); // Log for debugging
+    app.use(express.static(distPath));
 
     app.get('*', (_req: Request, res: Response) => {
-      res.sendFile(path.resolve(__dirname, '../client', 'dist', 'index.html'));
+      const indexPath = path.join(distPath, 'index.html');
+      console.log('Serving index from:', indexPath); // Log for debugging
+      res.sendFile(indexPath);
     });
   }
 
